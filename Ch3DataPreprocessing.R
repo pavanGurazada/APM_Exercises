@@ -2,9 +2,11 @@ library(AppliedPredictiveModeling)
 library(caret)
 library(tidyverse)
 
+library(mlbench)
+
 set.seed(20130810)
 theme_set(theme_bw())
-
+dev.new()
 
 # Here we are concerned about the preprocessing of features only. The outcome is
 # kept out of the discussion. Essentially, these are unsupervised techniques
@@ -80,4 +82,92 @@ length(nearZeroVar(segTrain))> 0
 highCorrVars <- cor(segTrain) %>% findCorrelation(cutoff = 0.75)
 segTrain <- segTrain %>% select(-highCorrVars)
 glimpse(segTrain)
+
+# Exercise 3.1
+
+data("Glass")
+glimpse(Glass)
+
+# Gather all the features into a column "Variable" and its corresponding value
+# into a column "Value". We leave the Type column alone. We can then plot the 
+# histogram of the variables at once using a facet wrap and compare values
+
+meltedGlass <- Glass %>% select(-Type) %>%  
+                         gather("Variable", "Value", 1:9)
+glimpse(meltedGlass)
+
+ggplot(meltedGlass) +
+  geom_histogram(aes(x = Value)) + 
+  facet_wrap(~Variable)
+
+# The plot shows signs of both bimodality and skewness.
+
+# Check for degenerate features
+length(nearZeroVar(Glass)) > 0 # No problem here
+
+# We look for highly correlated predictors
+
+highCorrVars <- Glass %>% select(-Type) %>% 
+                          cor() %>% 
+                          findCorrelation(cutoff = 0.75)
+
+# This is suggesting that removing Ca might be a good option since it is highly 
+# correlated with others
+
+# Many zeros exist in the data, hence Yeo-Johnson transformation might be better
+
+yjTrans <- Glass %>% select(-Type) %>% 
+                     preProcess(method = "YeoJohnson")
+
+yjTransData <- predict(yjTrans, Glass[, -10]) 
+glimpse(yjTransData)
+
+# Now we relook at the distribution of the variables
+
+meltedYJTransData <- yjTransData %>% gather("Variable", "Value", 1:9)
+ggplot(meltedYJTransData) +
+  geom_histogram(aes(x = Value)) +
+  facet_wrap(~Variable)
+
+# Does not seem to have a big difference
+
+# Moving on to spatial sign transformation for outliers
+
+spatSignTrans <- Glass %>% select(-Type) %>% 
+                           preProcess(method = c("center", "scale", "spatialSign"))
+ssData <- predict(spatSignTrans, Glass[, -10])
+glimpse(ssData)
+
+# Exercise 3.2
+
+data("Soybean")
+glimpse(Soybean)
+
+# Are the missing values concentrated among few predictors?
+# Here is a helper function that computes the missing values percentage by variable
+
+naPercentage <- function(df) {
+  percentage <- floor(colSums(is.na(df))*100/dim(df)[1])
+  return(percentage)
+}
+
+# Another alternative is to use dplyr; I didnt find this appealing
+
+Soybean %>% select_if(function(x) any(is.na(x))) %>% 
+            summarize_all(funs(sum(is.na(.))*100/length(.)))
+
+
+# We can look at the distribution of NAs by Class. This will help decide if we need
+# to exclude certain variables
+
+# What is the percentage of missing values for each predictor by class?
+
+naByPredByClass <- Soybean %>% gather("Variable", "Value", -Class) %>% 
+                               group_by(Class, Variable) %>% 
+                               filter(is.na(Value)) %>% 
+                               summarize_at("Value", funs(sum(is.na(.)))) 
+glimpse(naByPredByClass)
+
+# There are loads of missing values, scattered among mainly three classes
+# How would one do imputation here?
 
