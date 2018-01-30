@@ -185,3 +185,4 @@ svmFit <- train(Class ~ .,
 
 svmFit$results
 plot(svmFit, scales = list(x = list(log = 2)))
+print(svmFit)
