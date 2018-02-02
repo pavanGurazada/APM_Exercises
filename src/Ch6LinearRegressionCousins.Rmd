@@ -1,0 +1,14 @@
+---
+title: "Understanding linear regression and its cousins"
+date: "February 2018"
+output: github_notebook
+---
+
+In this chapter we take a closer look at understanding the family of linear regression methods. The focus is on understanding how each method works, rather than the matrix plumbing associated with them.
+
+```{r}
+library(AppliedPredictiveModeling)
+library(caret)
+library(tidyverse)
+```
+
