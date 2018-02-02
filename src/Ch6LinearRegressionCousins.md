@@ -59,9 +59,30 @@ The choice of basis vectors is not unique. This implies that we could have chose
 
 
 
-```{r echo = FALSE}
-library(AppliedPredictiveModeling)
-library(caret)
-library(tidyverse)
+
+```
+## Loading required package: lattice
+```
+
+```
+## Loading required package: ggplot2
+```
+
+```
+## -- Attaching packages ----------------------------------------------------------------------------------------------------------------------- tidyverse 1.2.1 --
+```
+
+```
+## v tibble  1.4.2     v purrr   0.2.4
+## v tidyr   0.8.0     v dplyr   0.7.4
+## v readr   1.1.1     v stringr 1.2.0
+## v tibble  1.4.2     v forcats 0.2.0
+```
+
+```
+## -- Conflicts -------------------------------------------------------------------------------------------------------------------------- tidyverse_conflicts() --
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()
+## x purrr::lift()   masks caret::lift()
 ```
 
