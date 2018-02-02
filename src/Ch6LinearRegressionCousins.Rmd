@@ -1,11 +1,11 @@
 ---
 title: "Understanding linear regression and its cousins"
+header-includes: \usepackage{amsmath}
 date: "February 2018"
-header-includes:
-    - \usepackage{amsmath}
-output: 
+output:
+  pdf_document: default
   html_document:
-    keep_md: true
+    keep_md: yes
 ---
 
 In this chapter we take a closer look at understanding the family of linear regression methods. The focus is on understanding how each method works, rather than the matrix plumbing associated with them. We take an explicit geometric view here, rather than a numerical approach. Hat-tip to [3Blue1Brown](https://www.youtube.com/channel/UCYO_jab_esuFRV4b17AJtAw) for kindling the geometric intuition. In this workbook, we take this initial intuition forward and extend it to linear models. The idea is to describe the geometry of several linear modeling algorithms. The emphasis is on undertsanding why things are the way there are and not how. Read the prose and visualize the geometry.
