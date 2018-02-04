@@ -9,7 +9,6 @@
 library(AppliedPredictiveModeling)
 library(caret)
 library(tidyverse)
-library(latex2exp)
 
 set.seed(20130810)
 theme_set(theme_bw())
@@ -22,8 +21,10 @@ theme_set(theme_bw())
 #' kindling the geometric intuition. In this workbook, we take this initial
 #' intuition forward and extend it to linear models. The idea is to describe the
 #' geometry of several linear modeling algorithms. The emphasis is on
-#' undertsanding why things are the way there are and not how. Read the prose
-#' and visualize the geometry.
+#' undertsanding why things are the way there are and not how. There is a strong
+#' case for numerical linear algebra. However, it is a lot more fun to think in
+#' terms of the geometry of linear models rather than sequences of floating
+#' pointoperations.
 #'
 #' # Introduction
 #'
@@ -59,7 +60,7 @@ ggplot(data.frame(x = -5:5, y = -5:5), aes(x, y)) +
 #' real numbers are called scalars.
 #'
 #' *Idea 4*. Each coordinate of a vector squishes or enlarges unit vectors
-#' ($\hat{i}, \hat{j}, \ldots$) along the axes. Adding these scaled unit vectors
+#' ($\mathbf{i}, \mathbf{j}, \ldots$) along the axes. Adding these scaled unit vectors
 #' gives us the original vector. The unit vectors are called the basis vectors
 #' of a coordinate system. By altering the choices of the scalars we can reach
 #' every point in the space mapped by the basis vectors.
@@ -72,8 +73,8 @@ ggplot(data.frame(x = -5:5, y = -5:5), aes(x, y)) +
 #'
 #' *Idea 5*. The process of scaling and adding a set of vectors is called a
 #' linear combination. So, a linear combination of the set $\mathbf{v_1},
-#' \mathbf{v_2}, \ldots$ is $\beta_1\mathbf{v_1} + \beta_2\mathbf{v_2 +
-#' \ldots}$. By varying the choice of $\beta$'s we can reach the space covered
+#' \mathbf{v_2}, \ldots$ is $\b_1\mathbf{v_1} + \b_2\mathbf{v_2 +
+#' \ldots}$. By varying the choice of $b$'s we can reach the space covered
 #' by the set of vectors. The set of all possible vectors one can reach using a
 #' linear combination of a set of vectors is called the span of the vectors.
 #'
@@ -94,16 +95,16 @@ ggplot(data.frame(x = -5:5, y = -5:5), aes(x, y)) +
 #' same origin where the vectors from the original space now lie in a different
 #' position. To track where a vector $\mathbf{v}$ lands after a linear
 #' transformation, we only need to track where the basis vectors of the original
-#' transformation $\hat{i}, \hat{j}, \ldots$ land up.
+#' transformation $\mathbf{i}, \mathbf{j}, \ldots$ land up.
 #'
 #' In other words the transformative effect of the linear transformation can be
 #' recorded through the transformation in the basis vectors and every other
 #' vector can be derived from these. So, a general vector $\mathbf{v} = v_1
-#' \hat{i} + v_2 \hat{j} + \ldots$ is mapped to a new vector $\mathbf{v}^' = v_1
-#' \hat{i}^' + v_2 \hat{j}^' + \ldots$. Since we can only keep a track of where
+#' \mathbf{i} + v_2 \mathbf{j} + \ldots$ is mapped to a new vector $\mathbf{v}^' = v_1
+#' \mathbf{i}^' + v_2 \mathbf{j}^' + \ldots$. Since we can only keep a track of where
 #' the basis vectors go, this transformation is encoded as a square matrix where
 #' each column of the matrix represents the position of the new basis vectors
-#' $\hat{i}^', \hat{j}^', \ldots$ after the transformation.
+#' $\mathbf{i}^', \mathbf{j}^', \ldots$ after the transformation.
 #'
 #' If the new basis vectors are linearly dependent, all of space is squished
 #' into a space of lesser dimension.
@@ -127,8 +128,8 @@ ggplot(data.frame(x = -5:5, y = -5:5), aes(x, y)) +
 #' functions of the predictors, this matrix set up simply means that multiplying
 #' this matrix with a vector translates the vector from the standard basis to
 #' the feature space. We then seek a solution to the ideal vector
-#' ($\mathbf{\beta}$) that when transformed to the parameter space is closest to
+#' ($\mathbf{b}$) that when transformed to the parameter space is closest to
 #' the outcome vecvot $\mathbf{y}$. Once a new sample is generated, we can use
-#' $\mathbf{\beta}$ to translate back to the parameter space and predict the outcome.
+#' $\mathbf{b}$ to translate back to the parameter space and predict the outcome.
 
 
