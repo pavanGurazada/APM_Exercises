@@ -43,8 +43,7 @@ ggplot(data.frame(x = -5:5, y = -5:5), aes(x, y)) +
   scale_y_continuous(limits = c(-5, 5)) +
   geom_vline(aes(xintercept = 0)) + 
   geom_hline(aes(yintercept = 0)) +
-  geom_text(aes(x = 0.5, y = 0.5, label = "y"), nudge_y = 1) + 
-  annotate("text", x = 1.5, y = 0.5, label = paste("X", beta), parse = TRUE)
+  geom_text(aes(x = 0.5, y = 0.5, label = "y"), nudge_y = 1) 
 
 #' *Idea 2*. Vector addition is an extension of the geometry of addition of two
 #' real numbers represented on the number line. For e.g., $2 + 5$ represents a
