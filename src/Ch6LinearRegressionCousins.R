@@ -15,18 +15,21 @@ theme_set(theme_bw())
 
 #' In this chapter we take a closer look at understanding the family of linear
 #' regression methods. The focus is on understanding how each method works,
-#' rather than the matrix plumbing associated with them. We take an explicit
-#' geometric view here, rather than a numerical approach. Hat-tip to
+#' rather than the numerical plumbing associated with them. Hat-tip to
 #' [3Blue1Brown](https://www.youtube.com/channel/UCYO_jab_esuFRV4b17AJtAw) for
-#' kindling the geometric intuition. In this workbook, we take this initial
-#' intuition forward and extend it to linear models. The idea is to describe the
-#' geometry of several linear modeling algorithms. The emphasis is on
-#' undertsanding why things are the way there are and not how. There is a strong
-#' case for numerical linear algebra. However, it is a lot more fun to think in
-#' terms of the geometry of linear models rather than sequences of floating
-#' pointoperations.
+#' kindling the geometric intuition. Most of the geometric ideas in the
+#' introduction are a direct summary of the information presented in these
+#' videos.
 #'
-#' # Introduction
+#' In this workbook, the idea is to describe the geometry of several linear
+#' modeling algorithms. The emphasis is on undertsanding why things are the way
+#' there are and not how. 
+#' 
+#' To reiterate, there is a strong case for numerical linear algebra.
+#' However, it is a lot more fun to think in terms of the geometry of linear
+#' models rather than sequences of floating pointoperations.
+#'
+#' ## Introduction
 #'
 #' *Idea 1*. Any point in space can be represented by a vector, i.e., an arrow
 #' drawn from a fixed origin to the point. To reiterate, the origin never moves
@@ -40,11 +43,16 @@ ggplot(data.frame(x = -5:5, y = -5:5), aes(x, y)) +
                arrow = arrow(ends = "last", type = "closed", length = unit(0.1, "inches"))) + 
   geom_segment(aes(x = 0, y = 0, xend = 3, yend = 1), 
                arrow = arrow(ends = "last", type = "closed", length = unit(0.1, "inches"))) +
+  geom_segment(aes(x = 3, y = 1, xend = 1, yend = 2), 
+               arrow = arrow(ends = "last", type = "closed", length = unit(0.1, "inches"))) +
   scale_x_continuous(limits = c(-5, 5)) + 
   scale_y_continuous(limits = c(-5, 5)) +
   geom_vline(aes(xintercept = 0)) + 
   geom_hline(aes(yintercept = 0)) +
-  geom_text(aes(x = 0.5, y = 0.5, label = "y"), nudge_y = 1) 
+  geom_text(aes(x = 0.5, y = 0.5, label = "y"), nudge_y = 1) + 
+  geom_text(aes(x = 1.5, y = 0.5, label = "X b"), nudge_x = 1) +
+  geom_text(aes(x = 1.5, y = 2, label = " y - X b"), nudge_x = 1) 
+  
 
 #' *Idea 2*. Vector addition is an extension of the geometry of addition of two
 #' real numbers represented on the number line. For e.g., $2 + 5$ represents a
@@ -60,10 +68,10 @@ ggplot(data.frame(x = -5:5, y = -5:5), aes(x, y)) +
 #' real numbers are called scalars.
 #'
 #' *Idea 4*. Each coordinate of a vector squishes or enlarges unit vectors
-#' ($\mathbf{i}, \mathbf{j}, \ldots$) along the axes. Adding these scaled unit vectors
-#' gives us the original vector. The unit vectors are called the basis vectors
-#' of a coordinate system. By altering the choices of the scalars we can reach
-#' every point in the space mapped by the basis vectors.
+#' ($\mathbf{i}, \mathbf{j}, \ldots$) along the axes. Adding these scaled unit
+#' vectors gives us the original vector. The unit vectors are called the basis
+#' vectors of a coordinate system. By altering the choices of the scalars we can
+#' reach every point in the space mapped by the basis vectors.
 #'
 #' The choice of basis vectors is not unique. This implies that we could have
 #' chosen a non-standard arbitrary set of vectors and through a judicious choice
@@ -73,38 +81,39 @@ ggplot(data.frame(x = -5:5, y = -5:5), aes(x, y)) +
 #'
 #' *Idea 5*. The process of scaling and adding a set of vectors is called a
 #' linear combination. So, a linear combination of the set $\mathbf{v_1},
-#' \mathbf{v_2}, \ldots$ is $\b_1\mathbf{v_1} + \b_2\mathbf{v_2 +
-#' \ldots}$. By varying the choice of $b$'s we can reach the space covered
-#' by the set of vectors. The set of all possible vectors one can reach using a
-#' linear combination of a set of vectors is called the span of the vectors.
+#' \mathbf{v_2}, \ldots$ is $b_1 \mathbf{v_1} + b_2 \mathbf{v_2} + \ldots$. By
+#' varying the choice of $b$'s we can reach the space covered by the set of
+#' vectors. The set of all possible vectors one can reach using a linear
+#' combination of a set of vectors is called the span of the vectors.
 #'
-#' *Idea 6*. In the situation where a suset of vectors point in the same
+#' *Idea 6*. In the situation where a subset of vectors point in the same
 #' direction or when a vector is in the span of others in the set the reach of
 #' the linear combination is limited, i.e., there is redundant information. The
-#' linear combination of these vectors lies in the same direction and hence does
-#' not cover the entire space. In this case, the basis vectors are linearly
-#' dependent.
+#' linear combination of these vectors hence does not cover the entire space. In
+#' this case, the basis vectors are linearly dependent.
 #'
 #' This illustrates why having a nice set of basis vectors is important if we
 #' wish to explore in the entire parameter space.
 #'
 #' *Idea 7*. Matrices encode the idea of linear transformations numerically. In
 #' these transformations, the origin remains fixed and the axes and the grid
-#' lines remain parallel and evenly spaced (i.e., the scale of the axes is
-#' locked). Linear transformation in essense produce a new space centered at the
-#' same origin where the vectors from the original space now lie in a different
-#' position. To track where a vector $\mathbf{v}$ lands after a linear
-#' transformation, we only need to track where the basis vectors of the original
-#' transformation $\mathbf{i}, \mathbf{j}, \ldots$ land up.
+#' lines remain parallel and evenly spaced (i.e., the scale of the axes cnanot
+#' be manipulated independent of each other). Linear transformation in essense
+#' produce a new space centered at the same origin where the vectors from the
+#' original space now lie in a different position. To track where a vector
+#' $\mathbf{v}$ lands after a linear transformation, we only need to track where
+#' the basis vectors of the original transformation $\mathbf{i}, \mathbf{j},
+#' \ldots$ land up.
 #'
 #' In other words the transformative effect of the linear transformation can be
 #' recorded through the transformation in the basis vectors and every other
 #' vector can be derived from these. So, a general vector $\mathbf{v} = v_1
-#' \mathbf{i} + v_2 \mathbf{j} + \ldots$ is mapped to a new vector $\mathbf{v}^' = v_1
-#' \mathbf{i}^' + v_2 \mathbf{j}^' + \ldots$. Since we can only keep a track of where
-#' the basis vectors go, this transformation is encoded as a square matrix where
-#' each column of the matrix represents the position of the new basis vectors
-#' $\mathbf{i}^', \mathbf{j}^', \ldots$ after the transformation.
+#' \mathbf{i} + v_2 \mathbf{j} + \ldots$ is mapped to a new vector $\mathbf{v}^'
+#' = v_1 \mathbf{i}^' + v_2 \mathbf{j}^' + \ldots$. Since we need to only keep a
+#' track of where the basis vectors go, this transformation is encoded as a
+#' square matrix where each column of the matrix represents the position of the
+#' new basis vectors $\mathbf{i}^', \mathbf{j}^', \ldots$ after the
+#' transformation.
 #'
 #' If the new basis vectors are linearly dependent, all of space is squished
 #' into a space of lesser dimension.
@@ -115,21 +124,24 @@ ggplot(data.frame(x = -5:5, y = -5:5), aes(x, y)) +
 #'
 #' A chain of linear transformations, for e.g., rotation (say $\mathbf{A}$)
 #' followed by shear (say $\mathbf{B}$), the final position of a vector
-#' $\mathbf{v}$ is then $\mathbf{B}(\mathbf{A}\mathbf{v})$. This brings forth
+#' $\mathbf{v}$ is then $\mathbf{B}(\mathbf{A} \mathbf{v})$. This brings forth
 #' the notion of a product of two matrices as a composition of two linear
 #' transformations.
 #'
-#' # Overall view of linear models
+#' ## Overall view of linear models
 #'
-#' With this initial intuition out of the way, we are in a position to interpret
-#' linear models in a geometric way. In linear modeling, we predict an outcome
-#' vector $\mathbf{y}$ using a set of feature vectors, usually collected into a
-#' model matrix $\mathbf{X}$. As discussed earlier, since we deal with linear
-#' functions of the predictors, this matrix set up simply means that multiplying
-#' this matrix with a vector translates the vector from the standard basis to
-#' the feature space. We then seek a solution to the ideal vector
-#' ($\mathbf{b}$) that when transformed to the parameter space is closest to
-#' the outcome vecvot $\mathbf{y}$. Once a new sample is generated, we can use
-#' $\mathbf{b}$ to translate back to the parameter space and predict the outcome.
+#' With this initial intuition, we can explore the geometry of linear models. In
+#' linear modeling, we predict an outcome vector $\mathbf{y}$ using a set of
+#' feature vectors, usually collected into a model matrix $\mathbf{X}$. Since
+#' the features are a choice of the analyst, the model matrix is the feature
+#' space as defined by the analyst. As discussed earlier, multiplying this
+#' matrix with a vector translates the vector from the standard basis to the
+#' feature space. Since the outcome is also measured in the feature space,
+#' linear models seek to minimize the difference between the outcome and the
+#' transformed vector. Hence, we seek a solution to the ideal vector
+#' ($\mathbf{b}$) that when transformed to the parameter space is closest to the
+#' outcome vector $\mathbf{y}$. For a new model matrix $\mathbf{X_t}$ in the
+#' feature space, this same transformation $\mathbf{X_t b}$ maps these points
+#' (hopefully) close to the actual outcome.
 
 
