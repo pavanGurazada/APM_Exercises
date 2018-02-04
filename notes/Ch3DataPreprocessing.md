@@ -219,7 +219,11 @@ glimpse(transSegTrain) # you should onl see the 19 principal components here
     ## $ PC18 <dbl> -0.55515083, 0.06569274, 1.35736326, -0.63185874, -0.5846...
     ## $ PC19 <dbl> 0.68129112, 0.14157724, 0.10187098, -0.96813663, 0.050848...
 
-This highlights a disadvantage of PCA, i.e., the loss of interpretability of features An alternative pathway is to remove zero variance features and features that are highly correlated Check for degenerate features
+This highlights a disadvantage of PCA, i.e., the loss of interpretability of features.
+
+PCA essentially projects the data onto a vector pointed in the direction of maximum variance. The first direction is along the eigen vector corresponding to the largest eigen value and so on.
+
+An alternative pathway is to remove zero variance features and features that are highly correlated Check for degenerate features
 
 ``` r
 length(nearZeroVar(segTrain))> 0

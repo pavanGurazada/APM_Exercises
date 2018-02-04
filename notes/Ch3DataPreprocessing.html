@@ -211,7 +211,9 @@ February 2018</p>
 ## $ PC17 &lt;dbl&gt; 0.783699478, -0.791062674, -0.002913506, -0.025376331, -0...
 ## $ PC18 &lt;dbl&gt; -0.55515083, 0.06569274, 1.35736326, -0.63185874, -0.5846...
 ## $ PC19 &lt;dbl&gt; 0.68129112, 0.14157724, 0.10187098, -0.96813663, 0.050848...</code></pre>
-<p>This highlights a disadvantage of PCA, i.e., the loss of interpretability of features An alternative pathway is to remove zero variance features and features that are highly correlated Check for degenerate features</p>
+<p>This highlights a disadvantage of PCA, i.e., the loss of interpretability of features.</p>
+<p>PCA essentially projects the data onto a vector pointed in the direction of maximum variance. The first direction is along the eigen vector corresponding to the largest eigen value and so on.</p>
+<p>An alternative pathway is to remove zero variance features and features that are highly correlated Check for degenerate features</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">length</span>(<span class="kw">nearZeroVar</span>(segTrain))<span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span></code></pre></div>
 <pre><code>## [1] FALSE</code></pre>
 <p>Check for highly correlated features Compute the correlation among all features, then filter beyond a cutoff</p>

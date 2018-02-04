@@ -89,8 +89,12 @@ transSegTrain <- predict(trans, segTrain)
 glimpse(transSegTrain) # you should onl see the 19 principal components here
 
 #' This highlights a disadvantage of PCA, i.e., the loss of interpretability of
-#' features
-
+#' features.
+#'
+#' PCA essentially projects the data onto a vector pointed in the direction of
+#' maximum variance. The first direction is along the eigen vector corresponding
+#' to the largest eigen value and so on.
+#'
 #' An alternative pathway is to remove zero variance features and features that
 #' are highly correlated
 
