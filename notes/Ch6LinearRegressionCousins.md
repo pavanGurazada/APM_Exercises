@@ -33,7 +33,7 @@ ggplot(data.frame(x = -5:5, y = -5:5), aes(x, y)) +
   geom_text(aes(x = 0.5, y = 0.5, label = "y"), nudge_y = 1) 
 ```
 
-![](C:\Users\Pavan%20Gurazada\Documents\GitHub\APMExercises\notes\Ch6LinearRegressionCousins_files/figure-markdown_github/unnamed-chunk-2-1.png)
+![](C:\Users\PAVANG~1\DOCUME~1\GitHub\APMEXE~1\notes\CH6LIN~1/figure-markdown_github/unnamed-chunk-2-1.png)
 
 *Idea 2*. Vector addition is an extension of the geometry of addition of two real numbers represented on the number line. For e.g., 2 + 5 represents a movement of 2 steps to begin with and 5 steps in the same direction ending up 7 steps away from a fixed origin. Similarly, **v** + **u** represents a movement along **v** starting from the origin and moving parallel to **u** from the tip of **v**. In this way, vector addition captures the notion that vectors have a size and direction.
 
