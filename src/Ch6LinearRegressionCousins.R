@@ -19,9 +19,8 @@ theme_set(theme_bw())
 #' [3Blue1Brown](https://www.youtube.com/channel/UCYO_jab_esuFRV4b17AJtAw) for
 #' kindling the geometric intuition. Most of the geometric ideas in the
 #' introduction are a direct summary of the information presented in these
-#' videos.
-#'
-#' In this workbook, the idea is to describe the geometry of several linear
+#' videos. This is more of a 'teach-myself-how-things-work' while speaking in
+#' code. Hence, the idea is to describe the geometry of several linear
 #' modeling algorithms. The emphasis is on undertsanding why things are the way
 #' there are and not how. 
 #' 
@@ -207,14 +206,57 @@ glimpse(myLM)
 print(myLM$coefs)
 plot(myLM)
 
+#' Another way to derive the regression coefficients is to use the Maximum
+#' Likelihood Estimation (MLE) technique. Here, we assume that the residuals are
+#' i.i.d. standard normal and derive how likely is it to observe the data.
+#'
+#' Again, [reinventing the
+#' wheel](https://www.r-bloggers.com/fitting-a-model-by-maximum-likelihood/).
+#' From my perspective, there is something mathematically comforting about this
+#' approach. We build up the probability distribution of the residuals and then
+#' hand it over to an optimization routine to minimize this. There is a clean
+#' separation between the logic of the estimation routine and the assumptions
+#' are clear from the outset.
+
+N <- 1e4
+
+x <- runif(N)
+y <- 3 + 5 * x + rnorm(N)
+
+logLikelihood <- function(beta0, beta1, mu, sigma) {
+  resids <- y - x * beta1 - beta0
+  
+  resids <- suppressWarnings(dnorm(resids, mu, sigma))
+  return(-sum(log(resids)))
+}
+
+#' The initial guess in the MLE is very important
+
+# fit <- stats4::mle(logLikelihood, 
+#                    start = list(beta0 = 3, beta1 = 1, mu = 0, sigma = 1))
+
+fit <- stats4::mle(logLikelihood,
+                   start = list(beta0 = 2, beta1 = 1.5, sigma = 1),
+                   fixed = list(mu = 0),
+                   nobs = length(y))
+
+print(fit)
+
+#' Fitting a different distribution of residuals is a simple matter of changing
+#' the `dnorm()` in the log likelihood function to a different distribution.
+#' Choosing assumptions and starting points for MLE, though, is not for the
+#' faint heart.
+#'
 #' 2. *PLS* models seek to find the $\mathbf{b}$ that maximizes the correlation
 #' between $\mathbf{Xb}$ and $\mathbf{y}$. Hence, PLS build up linear
 #' combinations of the features as an intermediate step, building up an
 #' alternate basis as a result. It then iteratively solves for the optimal
 #' solution that maximizes the correlation with $\mathbf{y}$, i.e., $arg
-#' max(cor(\mathbf{Xb}, \mathbf{y}))$. 
-#' 
-#' 
+#' max(cor(\mathbf{Xb}, \mathbf{y}))$ while at the same time minimizing the
+#' least squared error as in the case of a simpel linear model. This is
+#' particularly helpful when we have more features than the data.
+#'
+#'
 #'
 #' 3.
   
