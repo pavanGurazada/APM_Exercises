@@ -143,5 +143,79 @@ ggplot(data.frame(x = -5:5, y = -5:5), aes(x, y)) +
 #' outcome vector $\mathbf{y}$. For a new model matrix $\mathbf{X_t}$ in the
 #' feature space, this same transformation $\mathbf{X_t b}$ maps these points
 #' (hopefully) close to the actual outcome.
+#'
+#' ## Different flavors of linear models
+#'
+#' 1. *OLS* models seek to find the $\mathbf{b}$ that minimizes the squared
+#' error, i.e., $\mathbf{(y - Xb)}^2$. This problem admits a well-known closed
+#' form solution and hence can be used to compute $\mathbf{b}$ without
+#' iteration. We can [re-create the
+#' wheel](https://www.r-bloggers.com/create-your-machine-learning-library-from-scratch-with-r-1-3/),
+#' by creating a OLS linear regression object, defining the predict and plot
+#' methods for it. This is a nice example where the mathematics is simple so the
+#' R mechanics of creating model objects can be understood clearly:
 
+fitLM <- function(X, y, intercept = TRUE, lambda = 0) {
+  if (!is.matrix(X)) {
+    X <- as.matrix(X)
+  } 
+  
+  if (!is.matrix(y)) {
+    y <- as.matrix(y)
+  }
+  
+  if (intercept) {
+    X <- cbind(X, 1)
+  }
+  
+  output <- list(intercept = intercept)
+  
+  output$coefs <- solve(t(X) %*% X) %*% t(X) %*% y
+  output$preds <- X  %*% output$coefs
+  output$residuals <- output$preds - y
+  output$MSE <- mean(output$residuals^2)
+  
+  attr(output, "class") <- "naiveLM"
+  return (output)
+}
+
+predict.naiveLM <- function(naiveLMObject, X, ...) {
+  if (!is.matrix(X)) {
+    X <- as.matrix(X)
+  }
+  
+  if (naiveLMObject$intercept) {
+    X <- cbind(X, 1)
+  }
+  
+  return (X %*% naiveLMObject$coefs)
+}
+
+plot.naiveLM <- function(naiveLMObject, bins = 30, ...) {
+  qplot(naiveLMObject$preds,
+        naiveLMObject$residuals, 
+        geom = "point") +
+    xlab("Predicted Values") + 
+    ylab("Residuals") + 
+    geom_hline(aes(yintercept = 0), linetype = "dotted") + 
+    ggtitle("Residuals vs. Fitted Values")
+}
+
+myLM <- fitLM(cars[, 1], cars[, 2])
+glimpse(myLM)
+
+print(myLM$coefs)
+plot(myLM)
+
+#' 2. *PLS* models seek to find the $\mathbf{b}$ that maximizes the correlation
+#' between $\mathbf{Xb}$ and $\mathbf{y}$. Hence, PLS build up linear
+#' combinations of the features as an intermediate step, building up an
+#' alternate basis as a result. It then iteratively solves for the optimal
+#' solution that maximizes the correlation with $\mathbf{y}$, i.e., $arg
+#' max(cor(\mathbf{Xb}, \mathbf{y}))$. 
+#' 
+#' 
+#'
+#' 3.
+  
 

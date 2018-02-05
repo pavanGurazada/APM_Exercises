@@ -92,8 +92,19 @@ glimpse(transSegTrain) # you should onl see the 19 principal components here
 #' features.
 #'
 #' PCA essentially projects the data onto a vector pointed in the direction of
-#' maximum variance. The first direction is along the eigen vector corresponding
-#' to the largest eigen value and so on.
+#' maximum variance. Starting with a feature matrix $\mathbf{X}$, we wish to
+#' transform this matrix to a matrix $\mathbf{Y}$ such that its covariance
+#' matrix of $\mathbf{C_Y}$ has the following nice properties:
+#'
+#' - All off-diagonal elements (corresponding to the covariance terms) are 0
+#'
+#' - Each successive dimension in $\mathbf{Y}$ should be ordered according to
+#' variance (diagonal terms of $\mathbf{C_Y}$)
+#'
+#' The plan of action in solving the PCA problem is to realize that any
+#' symmetric matrix is diagonalized by an orthonormal matrix of its
+#' eigenvectors. Hence, the first direction of maximum variance is along the
+#' eigen vector corresponding to the largest eigen value and so on.
 #'
 #' An alternative pathway is to remove zero variance features and features that
 #' are highly correlated
