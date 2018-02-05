@@ -104,8 +104,36 @@ glimpse(transSegTrain) # you should onl see the 19 principal components here
 #' The plan of action in solving the PCA problem is to realize that any
 #' symmetric matrix is diagonalized by an orthonormal matrix of its
 #' eigenvectors. Hence, the first direction of maximum variance is along the
-#' eigen vector corresponding to the largest eigen value and so on.
-#'
+#' eigen vector corresponding to the largest eigen value and so on. Here is a 
+#' naive but explanatory version of the PCA.
+
+pca <- function(X) {
+  
+  # pca: Perform PCA using covariance.
+  # X - NxM matrix of input data
+  # M dimensions, N samples
+  # signals - NxM matrix of projected data
+  # PC - each column is a PC
+  # V - Mx1 matrix of variances
+  
+  if (!is.matrix(X)) {
+    X <- as.matrix(X)
+  }
+  
+  n <- dim(X)[1]
+  m <- dim(X)[2]
+  
+  XMeans <- colMeans(X)
+  centredX <- X - XMeans
+  
+  covariance <- (1/(N-1)) %*% X * t(X)
+  
+  eigen(covariance)
+  
+}
+
+
+
 #' An alternative pathway is to remove zero variance features and features that
 #' are highly correlated
 
