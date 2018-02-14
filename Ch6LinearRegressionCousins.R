@@ -129,24 +129,24 @@ ggplot(data.frame(x = -5:5, y = -5:5), aes(x, y)) +
 #' ## Overall view of linear models
 #'
 #' With this initial intuition, we can explore the geometry of linear models. In
-#' linear modeling, we predict an outcome vector $\mathbf{y}$ using a set of
-#' feature vectors, usually collected into a model matrix $\mathbf{X}$. Since
+#' linear modeling, we predict an outcome vector $y$ using a set of
+#' feature vectors, usually collected into a model matrix $X$. Since
 #' the features are a choice of the analyst, the model matrix is the feature
 #' space as defined by the analyst. As discussed earlier, multiplying this
 #' matrix with a vector translates the vector from the standard basis to the
 #' feature space. Since the outcome is also measured in the feature space,
 #' linear models seek to minimize the difference between the outcome and the
 #' transformed vector. Hence, we seek a solution to the ideal vector
-#' ($\mathbf{b}$) that when transformed to the parameter space is closest to the
-#' outcome vector $\mathbf{y}$. For a new model matrix $\mathbf{X_t}$ in the
-#' feature space, this same transformation $\mathbf{X_t b}$ maps these points
+#' ($b$) that when transformed to the parameter space is closest to the
+#' outcome vector $y$. For a new model matrix $X_t$ in the
+#' feature space, this same transformation $X_t b$ maps these points
 #' (hopefully) close to the actual outcome.
 #'
 #' ## Different flavors of linear models
 #'
-#' 1. *OLS* models seek to find the $\mathbf{b}$ that minimizes the squared
-#' error, i.e., $\mathbf{(y - Xb)}^2$. This problem admits a well-known closed
-#' form solution and hence can be used to compute $\mathbf{b}$ without
+#' 1. *OLS* models seek to find the $b$ that minimizes the squared
+#' error, i.e., $(y - Xb)^2$. This problem admits a well-known closed
+#' form solution and hence can be used to compute $b$ without
 #' iteration. We can [re-create the
 #' wheel](https://www.r-bloggers.com/create-your-machine-learning-library-from-scratch-with-r-1-3/),
 #' by creating a OLS linear regression object, defining the predict and plot
@@ -250,25 +250,26 @@ print(fit)
 #' Choosing assumptions and starting points for MLE, though, is not for the
 #' faint heart.
 #'
-#' 2. *PLS* models seek to find the $\mathbf{b}$ that maximizes the correlation
-#' between $\mathbf{Xb}$ and $\mathbf{y}$. Hence, PLS build up linear
+#' 2. *PLS* models seek to find the $b$ that maximizes the correlation
+#' between $Xb$ and $y$. Hence, PLS build up linear
 #' combinations of the features as an intermediate step, building up an
 #' alternate basis as a result. It then iteratively solves for the optimal
-#' solution that maximizes the correlation with $\mathbf{y}$, i.e., $arg
-#' max(cor(\mathbf{Xb}, \mathbf{y}))$ while at the same time minimizing the
+#' solution that maximizes the correlation with $y$, i.e., 
+#' $argmax(cor(Xb, y))$ while at the same time minimizing the
 #' least squared error as in the case of a simpel linear model. This is
 #' particularly helpful when we have more features than the data.
 #'
 #' 3. *Penalized least squares* models are an extension of the OLS models
-#' discussed earlier. In these models, a penalty is added to the SSE ($ =
-#' \mathbf{(y - Xb)}^2$)to reduce the variance of the model estimates while
+#' discussed earlier. In these models, a penalty is added to the 
+#' SSE ($ = (y - Xb)^2$)to reduce the variance of the model estimates while
 #' increasing the bias.
 #'
-#' For *ridge regression*, $SSE = \mathbf{(y - Xb)}^2 + \lambda \sum_{j = 1}^{P}
-#' b_j^2$. We can infer from this equation that the only way SSE can reduce if
-#' we penalize high values of $\mathbf{b}$. Thus the ridge regression shrinks
+#' For *ridge regression*, $SSE = (y - Xb)^2 + \lambda \sum_{j = 1}^{P} b_j^2$. 
+#' 
+#' We can infer from this equation that the only way SSE can reduce if
+#' we penalize high values of $b$. Thus the ridge regression shrinks
 #' the coefficients towards 0.
 #'
-#' For *lasso* (least absolute shrinkage and selection operator), $SSE =
-#' \mathbf{(y - Xb)}^2 + \lambda \sum_{j = 1}{P}|b_j|$
+#' For *lasso* (least absolute shrinkage and selection operator), 
+#' $SSE = (y - Xb)^2 + \lambda \sum_{j = 1}{P}|b_j|$
 

@@ -67,12 +67,12 @@ A chain of linear transformations, for e.g., rotation (say **A**) followed by sh
 Overall view of linear models
 -----------------------------
 
-With this initial intuition, we can explore the geometry of linear models. In linear modeling, we predict an outcome vector **y** using a set of feature vectors, usually collected into a model matrix **X**. Since the features are a choice of the analyst, the model matrix is the feature space as defined by the analyst. As discussed earlier, multiplying this matrix with a vector translates the vector from the standard basis to the feature space. Since the outcome is also measured in the feature space, linear models seek to minimize the difference between the outcome and the transformed vector. Hence, we seek a solution to the ideal vector (**b**) that when transformed to the parameter space is closest to the outcome vector **y**. For a new model matrix **X**<sub>**t**</sub> in the feature space, this same transformation **X**<sub>**t**</sub>**b** maps these points (hopefully) close to the actual outcome.
+With this initial intuition, we can explore the geometry of linear models. In linear modeling, we predict an outcome vector *y* using a set of feature vectors, usually collected into a model matrix *X*. Since the features are a choice of the analyst, the model matrix is the feature space as defined by the analyst. As discussed earlier, multiplying this matrix with a vector translates the vector from the standard basis to the feature space. Since the outcome is also measured in the feature space, linear models seek to minimize the difference between the outcome and the transformed vector. Hence, we seek a solution to the ideal vector (*b*) that when transformed to the parameter space is closest to the outcome vector *y*. For a new model matrix *X*<sub>*t*</sub> in the feature space, this same transformation *X*<sub>*t*</sub>*b* maps these points (hopefully) close to the actual outcome.
 
 Different flavors of linear models
 ----------------------------------
 
-1.  *OLS* models seek to find the **b** that minimizes the squared error, i.e., **(****y** **−** **X****b****)**<sup>2</sup>. This problem admits a well-known closed form solution and hence can be used to compute **b** without iteration. We can [re-create the wheel](https://www.r-bloggers.com/create-your-machine-learning-library-from-scratch-with-r-1-3/), by creating a OLS linear regression object, defining the predict and plot methods for it. This is a nice example where the mathematics is simple so the R mechanics of creating model objects can be understood clearly:
+1.  *OLS* models seek to find the *b* that minimizes the squared error, i.e., (*y* − *X**b*)<sup>2</sup>. This problem admits a well-known closed form solution and hence can be used to compute *b* without iteration. We can [re-create the wheel](https://www.r-bloggers.com/create-your-machine-learning-library-from-scratch-with-r-1-3/), by creating a OLS linear regression object, defining the predict and plot methods for it. This is a nice example where the mathematics is simple so the R mechanics of creating model objects can be understood clearly:
 
 ``` r
 fitLM <- function(X, y, intercept = TRUE, lambda = 0) {
@@ -196,10 +196,12 @@ print(fit)
 
 Fitting a different distribution of residuals is a simple matter of changing the `dnorm()` in the log likelihood function to a different distribution. Choosing assumptions and starting points for MLE, though, is not for the faint heart.
 
-1.  *PLS* models seek to find the **b** that maximizes the correlation between **X****b** and **y**. Hence, PLS build up linear combinations of the features as an intermediate step, building up an alternate basis as a result. It then iteratively solves for the optimal solution that maximizes the correlation with **y**, i.e., *a**r**g**m**a**x*(*c**o**r*(**X****b**, **y**)) while at the same time minimizing the least squared error as in the case of a simpel linear model. This is particularly helpful when we have more features than the data.
+1.  *PLS* models seek to find the *b* that maximizes the correlation between *X**b* and *y*. Hence, PLS build up linear combinations of the features as an intermediate step, building up an alternate basis as a result. It then iteratively solves for the optimal solution that maximizes the correlation with *y*, i.e., *a**r**g**m**a**x*(*c**o**r*(*X**b*, *y*)) while at the same time minimizing the least squared error as in the case of a simpel linear model. This is particularly helpful when we have more features than the data.
 
-2.  *Penalized least squares* models are an extension of the OLS models discussed earlier. In these models, a penalty is added to the SSE ($ = ^2$)to reduce the variance of the model estimates while increasing the bias.
+2.  *Penalized least squares* models are an extension of the OLS models discussed earlier. In these models, a penalty is added to the SSE ($ = (y - Xb)^2$)to reduce the variance of the model estimates while increasing the bias.
 
-For *ridge regression*, $SSE = \\mathbf{(y - Xb)}^2 + \\lambda \\sum\_{j = 1}^{P} b\_j^2$. We can infer from this equation that the only way SSE can reduce if we penalize high values of **b**. Thus the ridge regression shrinks the coefficients towards 0.
+For *ridge regression*, $SSE = (y - Xb)^2 + \\lambda \\sum\_{j = 1}^{P} b\_j^2$.
 
-For *lasso* (least absolute shrinkage and selection operator), *S**S**E* = **(****y** **−** **X****b****)**<sup>2</sup> + *λ*∑<sub>*j* = 1</sub>*P*|*b*<sub>*j*</sub>|
+We can infer from this equation that the only way SSE can reduce if we penalize high values of *b*. Thus the ridge regression shrinks the coefficients towards 0.
+
+For *lasso* (least absolute shrinkage and selection operator), *S**S**E* = (*y* − *X**b*)<sup>2</sup> + *λ*∑<sub>*j* = 1</sub>*P*|*b*<sub>*j*</sub>|
