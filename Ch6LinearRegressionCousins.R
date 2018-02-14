@@ -11,6 +11,11 @@ library(AppliedPredictiveModeling)
 library(caret)
 library(tidyverse)
 
+library(doParallel)
+library(parallel)
+clusters <- makeCluster(detectCores() - 1)
+registerDoParallel(clusters)
+
 set.seed(20130810)
 theme_set(theme_bw())
 
@@ -261,17 +266,27 @@ lmSol1 <- train(Solubility ~ .,
                 data = trainingData,
                 method = "lm",
                 preProcess = c("center", "scale"),
-                trControl = trainControl(method = "boot", 
-                                         number = 200))
+                trControl = trainControl(method = "optimism_boot", 
+                                         number = 200,
+                                         allowParallel = TRUE))
 lmSol2 <- train(Solubility ~ .,
+                data = trainingData,
+                method = "lm",
+                preProcess = c("center", "scale"),
+                trControl = trainControl(method = "boot632", 
+                                         number = 200,
+                                         allowParallel = TRUE))
+lmSol3 <- train(Solubility ~ .,
                 data = trainingData,
                 method = "lm",
                 preProcess = c("center", "scale"),
                 trControl = trainControl(method = "repeatedcv",
                                          number = 10, 
-                                         repeats = 5))
+                                         repeats = 5,
+                                         allowParallel = TRUE))
 print(lmSol1$results)
 print(lmSol2$results)
+print(lmSol3$results)
 
 #' There is a phenomenal difference in the RMSE between the two methods of
 #' cross-validation. There were several warnings that were produced in the model
@@ -286,14 +301,16 @@ lmSolFiltered1 <- train(solTrainXFiltered, solTrainY,
                         method = "lm",
                         preProcess = c("center", "scale"),
                         trControl = trainControl(method = "boot",
-                                                 number = 500))
+                                                 number = 500,
+                                                 allowParallel = TRUE))
 
 lmSolFiltered2 <- train(solTrainXFiltered, solTrainY, 
                         method = "lm",
                         preProcess = c("center", "scale"),
                         trControl = trainControl(method = "repeatedcv",
                                                  number = 10,
-                                                 repeats = 5))
+                                                 repeats = 5,
+                                                 allowParallel = TRUE))
 
 print(lmSolFiltered1$results)
 print(lmSolFiltered2$results)
@@ -321,7 +338,8 @@ plsSol <- train(solTrainXtrans, solTrainY,
                 tuneGrid = data.frame(ncomp = 1:30),
                 trControl = trainControl(method = "repeatedcv",
                                          number = 10,
-                                         repeats = 5))
+                                         repeats = 5, 
+                                         allowParallel = TRUE))
 print(plsSol$results)
 ggplot(data = plsSol$results, aes(x = ncomp, y = RMSE)) + 
   geom_point() +
