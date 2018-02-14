@@ -20,22 +20,21 @@ theme_set(theme_bw())
 #' kindling the geometric intuition. Most of the geometric ideas in the
 #' introduction are a direct summary of the information presented in these
 #' videos. This is more of a 'teach-myself-how-things-work' while speaking in
-#' code. Hence, the idea is to describe the geometry of several linear
-#' modeling algorithms. The emphasis is on undertsanding why things are the way
-#' there are and not how. 
-#' 
-#' To reiterate, there is a strong case for numerical linear algebra.
-#' However, it is a lot more fun to think in terms of the geometry of linear
-#' models rather than sequences of floating pointoperations.
+#' code. Hence, the idea is to describe the geometry of several linear modeling
+#' algorithms. The emphasis is on undertsanding why things are the way there are
+#' and not how.
+#'
+#' To reiterate, there is a strong case for numerical linear algebra. However,
+#' it is a lot more fun to think in terms of the geometry of linear models
+#' rather than sequences of floating pointoperations.
 #'
 #' ## Introduction
 #'
 #' *Idea 1*. Any point in space can be represented by a vector, i.e., an arrow
-#' drawn from a fixed origin to the point. To reiterate, the origin never moves
-#' and the tail of every vector lies on the origin. The coordinates of a vector
-#' encode the instructions of how to reach the point it represents starting from
-#' the origin and moving parallel to the axes, in order, i.e., $x, y, z,
-#' \ldots$.
+#' drawn from a fixed origin to the point. The origin never moves and the tail
+#' of every vector lies on the origin. The coordinates of a vector encode the
+#' instructions of how to reach the point it represents starting from the origin
+#' and moving parallel to the axes, in order, i.e., $x, y, z, \ldots$.
 
 ggplot(data.frame(x = -5:5, y = -5:5), aes(x, y)) +
   geom_segment(aes(x = 0, y = 0, xend = 1, yend = 2), 
@@ -86,7 +85,7 @@ ggplot(data.frame(x = -5:5, y = -5:5), aes(x, y)) +
 #' combination of a set of vectors is called the span of the vectors.
 #'
 #' *Idea 6*. In the situation where a subset of vectors point in the same
-#' direction or when a vector is in the span of others in the set the reach of
+#' direction or when a vector is in the span of others in the set, the reach of
 #' the linear combination is limited, i.e., there is redundant information. The
 #' linear combination of these vectors hence does not cover the entire space. In
 #' this case, the basis vectors are linearly dependent.
@@ -96,7 +95,7 @@ ggplot(data.frame(x = -5:5, y = -5:5), aes(x, y)) +
 #'
 #' *Idea 7*. Matrices encode the idea of linear transformations numerically. In
 #' these transformations, the origin remains fixed and the axes and the grid
-#' lines remain parallel and evenly spaced (i.e., the scale of the axes cnanot
+#' lines remain parallel and evenly spaced (i.e., the scale of the axes cannot
 #' be manipulated independent of each other). Linear transformation in essense
 #' produce a new space centered at the same origin where the vectors from the
 #' original space now lie in a different position. To track where a vector
@@ -164,7 +163,7 @@ fitLM <- function(X, y, intercept = TRUE, lambda = 0) {
   }
   
   if (intercept) {
-    X <- cbind(X, 1)
+    X <- cbind(1, X)
   }
   
   output <- list(intercept = intercept)
@@ -184,7 +183,7 @@ predict.naiveLM <- function(naiveLMObject, X, ...) {
   }
   
   if (naiveLMObject$intercept) {
-    X <- cbind(X, 1)
+    X <- cbind(1, X)
   }
   
   return (X %*% naiveLMObject$coefs)
@@ -212,19 +211,23 @@ plot(myLM)
 #'
 #' Again, [reinventing the
 #' wheel](https://www.r-bloggers.com/fitting-a-model-by-maximum-likelihood/).
-#' From my perspective, there is something mathematically comforting about this
+#' In my opinion, there is something mathematically comforting about this
 #' approach. We build up the probability distribution of the residuals and then
 #' hand it over to an optimization routine to minimize this. There is a clean
 #' separation between the logic of the estimation routine and the assumptions
 #' are clear from the outset.
+#' 
+#' Start with some fake data
 
 N <- 1e4
 
 x <- runif(N)
 y <- 3 + 5 * x + rnorm(N)
 
+#' The residuals likelihood is calculated by drawing from a normal distribution
+
 logLikelihood <- function(beta0, beta1, mu, sigma) {
-  resids <- y - x * beta1 - beta0
+  resids <- y - (beta0 + x * beta1) 
   
   resids <- suppressWarnings(dnorm(resids, mu, sigma))
   return(-sum(log(resids)))
@@ -256,8 +259,16 @@ print(fit)
 #' least squared error as in the case of a simpel linear model. This is
 #' particularly helpful when we have more features than the data.
 #'
+#' 3. *Penalized least squares* models are an extension of the OLS models
+#' discussed earlier. In these models, a penalty is added to the SSE ($ =
+#' \mathbf{(y - Xb)}^2$)to reduce the variance of the model estimates while
+#' increasing the bias.
 #'
+#' For *ridge regression*, $SSE = \mathbf{(y - Xb)}^2 + \lambda \sum_{j = 1}^{P}
+#' b_j^2$. We can infer from this equation that the only way SSE can reduce if
+#' we penalize high values of $\mathbf{b}$. Thus the ridge regression shrinks
+#' the coefficients towards 0.
 #'
-#' 3.
-  
+#' For *lasso* (least absolute shrinkage and selection operator), $SSE =
+#' \mathbf{(y - Xb)}^2 + \lambda \sum_{j = 1}{P}|b_j|$
 
