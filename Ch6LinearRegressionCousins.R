@@ -1,6 +1,7 @@
 #' ---
 #' title: "Understanding linear regression and its cousins"
-#' header-includes: \usepackage{amsmath}
+#' header-includes: 
+#'     - \usepackage{amssymbols}
 #' author: Pavan Gurazada
 #' date: "February 2018"
 #' output: github_document
@@ -145,7 +146,7 @@ ggplot(data.frame(x = -5:5, y = -5:5), aes(x, y)) +
 #' ## Different flavors of linear models
 #'
 #' 1. *OLS* models seek to find the $b$ that minimizes the squared
-#' error, i.e., $(y - Xb)^2$. This problem admits a well-known closed
+#' error, i.e., $(y -\! X \! b)^2$. This problem admits a well-known closed
 #' form solution and hence can be used to compute $b$ without
 #' iteration. We can [re-create the
 #' wheel](https://www.r-bloggers.com/create-your-machine-learning-library-from-scratch-with-r-1-3/),
@@ -261,15 +262,12 @@ print(fit)
 #'
 #' 3. *Penalized least squares* models are an extension of the OLS models
 #' discussed earlier. In these models, a penalty is added to the 
-#' SSE ($ = (y - Xb)^2$)to reduce the variance of the model estimates while
-#' increasing the bias.
-#'
-#' For *ridge regression*, $SSE = (y - Xb)^2 + \lambda \sum_{j = 1}^{P} b_j^2$. 
-#' 
-#' We can infer from this equation that the only way SSE can reduce if
+#' SSE ($ = (y - Xb)^2$) to reduce the variance of the model estimates while
+#' increasing the bias. For *ridge regression*, 
+#' $$SSE = (y - X\!b)^2 + \lambda \sum_{j = 1}^{P} \! b_j^2$$ We can infer from 
+#' this equation that the only way SSE can reduce if
 #' we penalize high values of $b$. Thus the ridge regression shrinks
-#' the coefficients towards 0.
-#'
-#' For *lasso* (least absolute shrinkage and selection operator), 
-#' $SSE = (y - Xb)^2 + \lambda \sum_{j = 1}{P}|b_j|$
+#' the coefficients towards 0. For *lasso* (least absolute shrinkage and 
+#' selection operator), 
+#' $$SSE = (y - \! Xb)^2 + \lambda \Sigma_{j = 1}^{P} \! |b_j|$$
 

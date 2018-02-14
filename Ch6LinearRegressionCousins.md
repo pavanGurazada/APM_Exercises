@@ -3,6 +3,8 @@ Understanding linear regression and its cousins
 Pavan Gurazada
 February 2018
 
+
+
 ``` r
 library(AppliedPredictiveModeling)
 library(caret)
@@ -72,7 +74,7 @@ With this initial intuition, we can explore the geometry of linear models. In li
 Different flavors of linear models
 ----------------------------------
 
-1.  *OLS* models seek to find the *b* that minimizes the squared error, i.e., (*y* − *X**b*)<sup>2</sup>. This problem admits a well-known closed form solution and hence can be used to compute *b* without iteration. We can [re-create the wheel](https://www.r-bloggers.com/create-your-machine-learning-library-from-scratch-with-r-1-3/), by creating a OLS linear regression object, defining the predict and plot methods for it. This is a nice example where the mathematics is simple so the R mechanics of creating model objects can be understood clearly:
+1.  *OLS* models seek to find the *b* that minimizes the squared error, i.e., (*y* − ​*X*​*b*)<sup>2</sup>. This problem admits a well-known closed form solution and hence can be used to compute *b* without iteration. We can [re-create the wheel](https://www.r-bloggers.com/create-your-machine-learning-library-from-scratch-with-r-1-3/), by creating a OLS linear regression object, defining the predict and plot methods for it. This is a nice example where the mathematics is simple so the R mechanics of creating model objects can be understood clearly:
 
 ``` r
 fitLM <- function(X, y, intercept = TRUE, lambda = 0) {
@@ -198,10 +200,7 @@ Fitting a different distribution of residuals is a simple matter of changing the
 
 1.  *PLS* models seek to find the *b* that maximizes the correlation between *X**b* and *y*. Hence, PLS build up linear combinations of the features as an intermediate step, building up an alternate basis as a result. It then iteratively solves for the optimal solution that maximizes the correlation with *y*, i.e., *a**r**g**m**a**x*(*c**o**r*(*X**b*, *y*)) while at the same time minimizing the least squared error as in the case of a simpel linear model. This is particularly helpful when we have more features than the data.
 
-2.  *Penalized least squares* models are an extension of the OLS models discussed earlier. In these models, a penalty is added to the SSE ($ = (y - Xb)^2$)to reduce the variance of the model estimates while increasing the bias.
-
-For *ridge regression*, $SSE = (y - Xb)^2 + \\lambda \\sum\_{j = 1}^{P} b\_j^2$.
-
-We can infer from this equation that the only way SSE can reduce if we penalize high values of *b*. Thus the ridge regression shrinks the coefficients towards 0.
-
-For *lasso* (least absolute shrinkage and selection operator), *S**S**E* = (*y* − *X**b*)<sup>2</sup> + *λ*∑<sub>*j* = 1</sub>*P*|*b*<sub>*j*</sub>|
+2.  *Penalized least squares* models are an extension of the OLS models discussed earlier. In these models, a penalty is added to the SSE ($ = (y - Xb)^2$) to reduce the variance of the model estimates while increasing the bias. For *ridge regression*,
+    $$SSE = (y - X\\!b)^2 + \\lambda \\sum\_{j = 1}^{P} \\! b\_j^2$$
+     We can infer from this equation that the only way SSE can reduce if we penalize high values of *b*. Thus the ridge regression shrinks the coefficients towards 0. For *lasso* (least absolute shrinkage and selection operator),
+    *S**S**E* = (*y* − ​*X**b*)<sup>2</sup> + *λ**Σ*<sub>*j* = 1</sub><sup>*P*</sup>​|*b*<sub>*j*</sub>|
