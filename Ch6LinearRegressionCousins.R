@@ -17,6 +17,7 @@ clusters <- makeCluster(detectCores() - 1)
 registerDoParallel(clusters)
 
 set.seed(20130810)
+dev.new()
 theme_set(theme_bw())
 
 #' In this chapter we take a closer look at understanding the family of linear
@@ -343,9 +344,7 @@ plsSol <- train(solTrainXtrans, solTrainY,
 print(plsSol$results)
 ggplot(data = plsSol$results, aes(x = ncomp, y = RMSE)) + 
   geom_point() +
-  geom_line() +
-  geom_errorbar(aes(ymin = RMSE - RMSESD,
-                    ymax = RMSE + RMSESD), width = 0.3)
+  geom_line() 
 
 #' 3. *Penalized least squares* models are an extension of the OLS models
 #' discussed earlier. In these models, a penalty is added to the 
@@ -356,11 +355,255 @@ ggplot(data = plsSol$results, aes(x = ncomp, y = RMSE)) +
 #' we penalize high values of $b$. Thus the ridge regression shrinks
 #' the coefficients towards 0. For *lasso* (least absolute shrinkage and 
 #' selection operator), 
-#' $$SSE = (y - \! Xb)^2 + \lambda \Sigma_{j = 1}^{P} \! |b_j|$$
+#' $$SSE = (y - \! Xb)^2 + \lambda \Sigma_{j = 1}^{P} \! |b_j|$$. The elastic
+#' net approach combines best of both lasso and ridge regression.
 #' 
 #' Faced with a choie of models, we resort to cross-validation or bootstrapping 
 #' to decide which one to apply to the problem at hand.
 #' 
 
+ridgeSol <- train(solTrainXtrans, solTrainY,
+                  method = "ridge",
+                  preProcess = c("center", "scale"),
+                  tuneGrid = data.frame(.lambda = seq(0, 0.1, length.out = 15)),
+                  trControl = trainControl(method = "repeatedcv",
+                                           number = 10,
+                                           repeats = 5,
+                                           allowParallel = TRUE))
+print(ridgeSol$results)
 
+ggplot(data = ridgeSol$results, aes(x = lambda, y = RMSE)) +
+  geom_point() +
+  geom_line() +
+  labs(x = expression(lambda))
 
+enetSol <- train(solTrainXtrans, solTrainY,
+                 method = "enet",
+                 preProcess = c("center", "scale"),
+                 tuneGrid = expand.grid(.lambda = c(0, 0.01, 0.1),
+                                       .fraction = seq(0.05, 1, length.out = 20)),
+                 trControl = trainControl(method = "repeatedcv",
+                                          number = 10,
+                                          repeats = 5,
+                                          allowParallel = TRUE))
+print(enetSol$results)
+
+#' It is fine and dandy when we are given the tune grid. How does one narrow 
+#' the space down to the interesting region?
+#' 
+#' *Exercise 1* A model for fat content
+#' 
+#' Analytical chemistry is usually used to calculate the fat content in a
+#' substance. As an alternative IR spectroscopy can be used to map the chemical
+#' makeup and predict fat content using this data.
+
+data(tecator)
+
+#' There are two data frames with the data:
+glimpse(absorp) # absornabce data for 215 samples at 100 frequencies
+glimpse(endpoints) # contains % water, fat and protein
+
+#' Since the measurements are measured on a range of frequencies, there are 
+#' bound to be correlations between the measurements.
+
+corrOffenders <- findCorrelation(absorp)
+cat("The number of highly correlated features are ", length(corrOffenders))
+
+colnames(absorp) <- paste0("F", 1:100)
+pcaTecator <- preProcess(absorp, method = c("center", "scale", "pca"), thresh = 0.99)
+print(pcaTecator)
+
+#' Output indicates that 2 components were enough to capture 99% of the
+#' variance. The data can be transformed to the parameter space of these two
+#' principal components by using the predict function
+
+pcaTecatorTrans <- predict(pcaTecator, absorp)
+
+#' These two components cannot really be interpreted. Proceeding now to fit
+#' several models to the data.
+#' 
+#' First, we split the data into train-test
+
+trainingRows <- createDataPartition(endpoints[, 2], p = 0.75, list = FALSE)
+absorpTrain <- absorp[trainingRows, ]
+absorpTest <- absorp[-trainingRows, ]
+fatTrain <- endpoints[trainingRows, 2]
+fatTest <- endpoints[-trainingRows, 2]
+
+lmFat <- train(absorpTrain, fatTrain,
+               method = "lm",
+               preProcess = c("center", "scale"),
+               trControl = trainControl(method = "repeatedcv",
+                                        number = 10,
+                                        repeats = 5, 
+                                        allowParallel = TRUE))
+
+#' Given the findings from PCA above, we might try another regression with the
+#' PCA conducted before the fit.
+
+lmFatPCA <- train(absorpTrain, fatTrain,
+                  method = "lm",
+                  preProcess = c("center", "scale", "pca"),
+                  trControl = trainControl(method = "repeatedcv",
+                                           number = 10, 
+                                           repeats = 5,
+                                           allowParallel = TRUE))
+print(lmFat$results)
+print(lmFatPCA$results)
+
+#' Post PCA fit performs horribly, which means the components did not do a good 
+#' job at capturing the variance in the outcome.
+#' 
+#' Hence, it might be better to conduct a PLS fit
+
+plsFat <- train(absorpTrain, fatTrain,
+                method = "pls",
+                preProcess = c("center", "scale"),
+                tuneGrid = data.frame(ncomp = 1:25),
+                trControl = trainControl(method = "repeatedcv",
+                                         number = 10,
+                                         repeats = 5,
+                                         allowParallel = TRUE))
+print(plsFat$results)
+
+ggplot(data = plsFat$results, aes(x = ncomp, y = RMSE)) +
+  geom_point() +
+  geom_line()
+
+#' Finally, we try the elastic net. The lasso is a special case when lambda = 0
+#' Always include this in the list of parameters
+
+enetFat <- train(absorpTrain, fatTrain,
+                 method = "enet",
+                 preProcess = c("center", "scale"),
+                 tuneGrid = expand.grid(lambda = c(0, 0.001, 0.01),
+                                        fraction = seq(0.05, 0.5, length.out = 20)),
+                 trControl = trainControl(method = "repeatedcv",
+                                          number = 10,
+                                          repeats = 5, 
+                                          allowParallel = TRUE))
+
+ggplot(data = enetFat$results, 
+       aes(x = fraction, y = lambda)) +
+  geom_tile(aes(fill = scale(RMSE))) +
+  scale_fill_gradient(low = "steelblue", high = "white")
+
+#' Looks like the lasso is the answer among the penalized models.
+
+print(plsFat)
+print(enetFat)
+
+#' There is little to choose between PLS and lasso. PLS is marginally better.
+
+#' * Exercise 2 * A model for permeability
+#' 
+#' The permeabiility of a drug is to be predicted on the basis of its chemical
+#' fingerprints. These fingerprints are chemical substructures within the drug
+
+data("permeability")
+
+#' The data is arranged into two parts, the fingerprints object is the model
+#' matrix, while the permeability object is the response.
+ 
+glimpse(fingerprints)
+glimpse(permeability)
+
+dim(fingerprints)
+
+#' Checking for degenerate predictors
+
+length(nearZeroVar(fingerprints))
+fingerprintsNonZeroVar <- fingerprints[, -nearZeroVar(fingerprints)]
+dim(fingerprintsNonZeroVar)
+
+#' Still there are more features than samples
+
+trainingRows <- createDataPartition(permeability, p = 0.75, list = FALSE)
+XTrain <- fingerprintsNonZeroVar[trainingRows, ]
+yTrain <- permeability[trainingRows]
+XTest <- fingerprintsNonZeroVar[-trainingRows, ]
+yTest <- permeability[-trainingRows]
+
+#' Training a PLS
+#' The outcome shows significant skew
+#' 
+#' For skewed distributions, a simple log transformation can make a significant
+#' difference in predictive power
+
+qplot(yTrain, geom = "histogram")
+
+plsPermeability <- train(XTrain, yTrain,
+                         method = "pls",
+                         preProcess = c("center", "scale"),
+                         tuneGrid = data.frame(ncomp = 1:15),
+                         trControl = trainControl(method = "repeatedcv",
+                                                  number = 10,
+                                                  repeats = 5,
+                                                  allowParallel = TRUE))
+
+plsLog10Permeability <- train(XTrain, log10(yTrain),
+                            method = "pls",
+                            preProcess = c("center", "scale"),
+                            tuneGrid = data.frame(ncomp = 1:15),
+                            trControl = trainControl(method = "repeatedcv",
+                                                     number = 10,
+                                                     repeats = 5,
+                                                     allowParallel = TRUE))
+
+plsLogPermeability <- train(XTrain, log(yTrain),
+                            method = "pls",
+                            preProcess = c("center", "scale"),
+                            tuneGrid = data.frame(ncomp = 1:15),
+                            trControl = trainControl(method = "repeatedcv",
+                                                     number = 10,
+                                                     repeats = 5,
+                                                     allowParallel = TRUE))
+
+print(plsPermeability$results)
+print(plsLogPermeability$results)
+
+ggplot(plsPermeability$results, aes(x = ncomp, y = RMSE)) +
+  geom_point() +
+  geom_line()
+
+ggplot(plsLogPermeability$results, aes(x = ncomp, y = RMSE)) +
+  geom_point() +
+  geom_line()
+
+ggplot(plsPermeability$results, aes(x = ncomp, y = Rsquared)) +
+  geom_point() +
+  geom_line()
+
+ggplot(plsLogPermeability$results, aes(x = ncomp, y = Rsquared)) +
+  geom_point() +
+  geom_line()
+
+yPred <- predict(plsLog10Permeability, XTest)
+
+qplot(log10(yTest), yPred, geom = "point") +
+  geom_abline(aes(slope = 1, intercept = 0)) +
+  labs(x = "log10(Observed)",
+       y = "log10(Predicted)")
+
+enetPermeability <- train(XTrain, yTrain,
+                          method = "enet",
+                          preProcess = c("center", "scale"),
+                          tuneGrid = expand.grid(lambda = c(0, 0.05, 0.1),
+                                                 fraction = seq(0.05, 1, length.out = 20)),
+                          trControl = trainControl(method = "repeatedcv",
+                                                   number = 10,
+                                                   repeats = 5))
+
+enetPermeability$results %>% as.data.frame() %>% 
+                             group_by(lambda) %>% 
+                             select(lambda, fraction, Rsquared) %>% 
+                             ggplot(aes(fraction, Rsquared)) +
+                              geom_point(aes(shape = factor(lambda))) +
+                              geom_line(aes(group = lambda))
+
+#' Now we need to choose between the elastic net and the PLS
+
+print(plsLog10Permeability)
+print(enetPermeability)
+
+#' Elastic net wins on Rsquared
