@@ -250,7 +250,57 @@ print(fit)
 #' the `dnorm()` in the log likelihood function to a different distribution.
 #' Choosing assumptions and starting points for MLE, though, is not for the
 #' faint heart.
-#'
+
+data(solubility)
+glimpse(solTrainX)
+
+trainingData <- solTrainXtrans
+trainingData$Solubility <- solTrainY
+
+lmSol1 <- train(Solubility ~ .,
+                data = trainingData,
+                method = "lm",
+                preProcess = c("center", "scale"),
+                trControl = trainControl(method = "boot", 
+                                         number = 200))
+lmSol2 <- train(Solubility ~ .,
+                data = trainingData,
+                method = "lm",
+                preProcess = c("center", "scale"),
+                trControl = trainControl(method = "repeatedcv",
+                                         number = 10, 
+                                         repeats = 5))
+print(lmSol1$results)
+print(lmSol2$results)
+
+#' There is a phenomenal difference in the RMSE between the two methods of
+#' cross-validation. There were several warnings that were produced in the model
+#' fit process essentially indicating a multi-collinearity problem. We can
+#' remove the offensive predictors and refit the model
+
+corrOffenders <- findCorrelation(cor(solTrainXtrans), 0.9)
+solTrainXFiltered <- solTrainXtrans[, -corrOffenders]
+solTestXFiltered <- solTestXtrans[, -corrOffenders]
+
+lmSolFiltered1 <- train(solTrainXFiltered, solTrainY, 
+                        method = "lm",
+                        preProcess = c("center", "scale"),
+                        trControl = trainControl(method = "boot",
+                                                 number = 500))
+
+lmSolFiltered2 <- train(solTrainXFiltered, solTrainY, 
+                        method = "lm",
+                        preProcess = c("center", "scale"),
+                        trControl = trainControl(method = "repeatedcv",
+                                                 number = 10,
+                                                 repeats = 5))
+
+print(lmSolFiltered1$results)
+print(lmSolFiltered2$results)
+
+#' The differences still remain. Stick to one metric throughout the analysis.
+#' Repeated CV is a nice mix between rigor and computational complexity.
+#' 
 #' 2. *PLS* models seek to find the $b$ that maximizes the correlation
 #' between $Xb$ and $y$. Hence, PLS build up linear
 #' combinations of the features as an intermediate step, building up an
@@ -259,7 +309,26 @@ print(fit)
 #' $argmax(cor(Xb, y))$ while at the same time minimizing the
 #' least squared error as in the case of a simpel linear model. This is
 #' particularly helpful when we have more features than the data.
-#'
+#' 
+#' The hyperarameter that can be tuned through cross-validation is the number of 
+#' principal components to use in the model fit. In a more general model setting
+#' the tuning parameters are entered into a grid at which the model is run and 
+#' the best parameter setting is on where the RMSE is minimum.
+
+plsSol <- train(solTrainXtrans, solTrainY,
+                method = "pls",
+                preProcess = c("center", "scale"),
+                tuneGrid = data.frame(ncomp = 1:30),
+                trControl = trainControl(method = "repeatedcv",
+                                         number = 10,
+                                         repeats = 5))
+print(plsSol$results)
+ggplot(data = plsSol$results, aes(x = ncomp, y = RMSE)) + 
+  geom_point() +
+  geom_line() +
+  geom_errorbar(aes(ymin = RMSE - RMSESD,
+                    ymax = RMSE + RMSESD), width = 0.3)
+
 #' 3. *Penalized least squares* models are an extension of the OLS models
 #' discussed earlier. In these models, a penalty is added to the 
 #' SSE ($ = (y - Xb)^2$) to reduce the variance of the model estimates while
@@ -270,4 +339,10 @@ print(fit)
 #' the coefficients towards 0. For *lasso* (least absolute shrinkage and 
 #' selection operator), 
 #' $$SSE = (y - \! Xb)^2 + \lambda \Sigma_{j = 1}^{P} \! |b_j|$$
+#' 
+#' Faced with a choie of models, we resort to cross-validation or bootstrapping 
+#' to decide which one to apply to the problem at hand.
+#' 
+
+
 
