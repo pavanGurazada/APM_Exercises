@@ -559,8 +559,16 @@ plsLogPermeability <- train(XTrain, log(yTrain),
                                                      repeats = 5,
                                                      allowParallel = TRUE))
 
+plsLog10Permeability2 <- train(XTrain, log10(yTrain),
+                               method = "pls",
+                               tuneGrid = data.frame(ncomp = 1:15),
+                               trControl = trainControl(method = "LGOCV",
+                                                        allowParallel = TRUE))
+
 print(plsPermeability$results)
+print(plsLog10Permeability$results)
 print(plsLogPermeability$results)
+print(plsLog10Permeability2$results)
 
 ggplot(plsPermeability$results, aes(x = ncomp, y = RMSE)) +
   geom_point() +
@@ -574,7 +582,7 @@ ggplot(plsPermeability$results, aes(x = ncomp, y = Rsquared)) +
   geom_point() +
   geom_line()
 
-ggplot(plsLogPermeability$results, aes(x = ncomp, y = Rsquared)) +
+ggplot(plsLog10Permeability2$results, aes(x = ncomp, y = Rsquared)) +
   geom_point() +
   geom_line()
 
@@ -607,3 +615,7 @@ print(plsLog10Permeability)
 print(enetPermeability)
 
 #' Elastic net wins on Rsquared
+#'
+#' *Exercise 3*
+#'
+#' There is no data for this problem
