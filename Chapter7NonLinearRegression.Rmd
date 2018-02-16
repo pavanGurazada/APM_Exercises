@@ -17,8 +17,88 @@ library(parallel)
 clusters <- makeCluster(detectCores() - 1)
 registerDoParallel(clusters)
 
+library(earth)
+
 set.seed(20130810)
 theme_set(theme_bw())
 ```
 
-                                                                                                                          
+In this chapter models that can handle unknown forms of non-linear relationships between the predictors and outcome are modeled using one of the following: neural networks, multivariate adaptive regression spline (MARS) and support vector machines (SVM). These methods make much more sense in classification problems.
+
+```{r}
+data(solubility)
+```
+
+## Neural networks
+
+Each of the predictors is connected to the outcome, through a series of hidden layers. Each of the neurons in the first hidden layer is connected to all the predictors. For the subsequent layers, each neuron in the layer is connected to all neurons in the previous layer. A neural network hence represents a series of abstractions, where each layer summarizes the knowledge from the previous layer to eventually predict the outcome. To avoid overfitting, a weight decay parameter is used, similar to the one used in the ridge regression.
+
+We try to minimize:
+
+$$
+\sum_{i = 1}^n(y_i -f_i(x))^2 + \lambda\sum_{k = 1}^H\sum_{j = 0}^P\beta_{jk}^2 + \lambda\sum_{k = 0}^p
+\gamma_k^2
+$$
+
+for a given value of $\lambda$. The tuning grid of the neural network consists of the number of hidden layers, number of neurons per hidden layer and the weight decay parameter for the hidden layers.
+
+```{r}
+corrOffenders <- findCorrelation(cor(solTrainXtrans), cutoff = 0.75)
+XTrain <- solTrainXtrans[, -corrOffenders]
+XTest <- solTestXtrans[, -corrOffenders]
+
+nnetFit <- train(XTrain, solTrainY,
+                 method = "nnet",
+                 preProcess = c("center", "scale"),
+                 tuneGrid = expand.grid(decay = c(0, 0.01, 0.1),
+                                        size = c(1:10)),
+                 trControl = trainControl(method = "cv", 
+                                          allowParallel = TRUE),
+                 linout = TRUE,
+                 trace = FALSE,
+                 maxit = 500)
+
+```
+
+```{r}
+nnetFit
+```
+
+
+
+## Multivariate adaptive regression splines (MARS)
+
+For each predictor, two groups and the linear relationship between the outcome and the predictors in each group is computed. This is sort of similar to mixed effect models. The entire parameter region is split into areas where a simple regression is most predictive in that region. The tuning parameters are: degree of features added to the model and the number of retained terms. 
+
+MARS performs feature selection as a way improve functional performance and is attractive from an interpretation perspective.
+
+```{r}
+marsFit <- train(XTrain, solTrainY,
+                 method = "earth",
+                 tuneGrid = expand.grid(.degree = 1:2,
+                                        .nprune = 2:38),
+                 trControl = trainControl(method = "cv"))
+```
+
+```{r}
+summary(marsFit)
+```
+
+```{r}
+varImp(marsFit)
+```
+
+
+## Support Vector Machines
+
+Think of SVM as a correction procedure for the influence of outliers on linear regression. Given a user-defined threshold, samples with residuals within the threshold do not contribute to the regression fit while those greater than the threshold contribute a linear-scale amount. Hence, the tuning parameters of the model are the cost associated with the residuals and the scale contribution of the samples within the threshold.
+
+```{r}
+svmFit <- train(XTrain, solTrainY,
+                method = "svmRadial",
+                preProcess = c("center", "scale"),
+                tuneGrid = data.frame(C = seq(2e-2, 2e11, length.out = 14),
+                                      sigma = 0.00387),
+                trControl = trainControl(method = "cv"))
+```
+
